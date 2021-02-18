@@ -18,9 +18,14 @@ import org.jolokia.server.core.restrictor.RestrictorFactory;
 import org.jolokia.server.core.service.JolokiaServiceManagerFactory;
 import org.jolokia.server.core.service.api.*;
 import org.jolokia.server.core.service.impl.ClasspathServiceCreator;
+import org.jolokia.server.core.util.ChunkedWriter;
 import org.jolokia.server.core.util.ClassUtil;
+import org.jolokia.server.core.util.IoUtil;
+import org.jolokia.server.core.util.MimeTypeUtil;
 import org.jolokia.server.core.util.NetworkUtil;
 import org.json.simple.JSONAware;
+import org.json.simple.JSONStreamAware;
+
 
 /*
  * Copyright 2009-2013 Roland Huss
@@ -48,7 +53,7 @@ import org.json.simple.JSONAware;
  * request. See the <a href="http://www.jolokia.org/reference/index.html">reference documentation</a>
  * for a detailed description of this servlet's features.
  * </p>
- * 
+ *
  * @author roland@jolokia.org
  * @since Apr 18, 2009
  */
@@ -64,18 +69,24 @@ public class AgentServlet extends HttpServlet {
 
     // Restrictor to use as given in the constructor
     private Restrictor initRestrictor;
-    
+
     // If discovery multicast is enabled and URL should be initialized by request
     private boolean initAgentUrlFromRequest = false;
 
     // context for this servlet
     private JolokiaContext jolokiaContext;
 
+    // Mime type used for returning the answer
+    private String configMimeType;
+
     // Service manager for creating/destroying the Jolokia context
     private JolokiaServiceManager serviceManager;
 
     // whether to allow reverse DNS lookup for checking the remote host
     private boolean allowDnsReverseLookup;
+
+    // whether to allow streaming mode for response
+    private boolean streamingEnabled;
 
     /**
      * No argument constructor, used e.g. by an servlet
@@ -116,7 +127,7 @@ public class AgentServlet extends HttpServlet {
 
         // Create the service manager and initialize
         serviceManager =
-                JolokiaServiceManagerFactory.createJolokiaServiceManager(config, logHandler, restrictor, getServerDetectorLookup());
+            JolokiaServiceManagerFactory.createJolokiaServiceManager(config, logHandler, restrictor, getServerDetectorLookup());
         initServices(pServletConfig, serviceManager);
 
         // Start it up ....
@@ -129,8 +140,10 @@ public class AgentServlet extends HttpServlet {
         httpPostHandler = newPostHttpRequestHandler();
 
         initAgentUrl();
-    }
 
+        configMimeType = config.getConfig(ConfigKey.MIME_TYPE);
+        streamingEnabled = Boolean.parseBoolean(config.getConfig(ConfigKey.STREAMING));
+    }
 
     @Override
     public void destroy() {
@@ -145,6 +158,7 @@ public class AgentServlet extends HttpServlet {
     protected void initServices(ServletConfig pServletConfig, JolokiaServiceManager pServiceManager) {
         pServiceManager.addServices(new ClasspathServiceCreator("services"));
     }
+
 
     /**
      * Hook for allowing a custome detector lookup
@@ -194,7 +208,6 @@ public class AgentServlet extends HttpServlet {
         }
         return new StaticConfiguration(envConfig);
     }
-
     /**
      * Create a log handler using this servlet's logging facility for logging. This method can be overridden
      * to provide a custom log handler.
@@ -292,7 +305,7 @@ public class AgentServlet extends HttpServlet {
     protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         Map<String,String> responseHeaders =
                 requestHandler.handleCorsPreflightRequest(
-                        req.getHeader("Origin"),
+                        getOriginOrReferer(req),
                         req.getHeader("Access-Control-Request-Headers"));
         for (Map.Entry<String,String> entry : responseHeaders.entrySet()) {
             resp.setHeader(entry.getKey(),entry.getValue());
@@ -302,11 +315,15 @@ public class AgentServlet extends HttpServlet {
     @SuppressWarnings({ "PMD.AvoidCatchingThrowable", "PMD.AvoidInstanceofChecksInCatchClause" })
     private void handle(ServletRequestHandler pReqHandler,HttpServletRequest pReq, HttpServletResponse pResp) throws IOException {
         JSONAware json = null;
+
         try {
             // Check access policy
             requestHandler.checkAccess(allowDnsReverseLookup ? pReq.getRemoteHost() : null,
                                        pReq.getRemoteAddr(),
                                        getOriginOrReferer(pReq));
+
+            // If a callback is given, check this is a valid javascript function name
+            validateCallbackIfGiven(pReq);
 
             // Remember the agent URL upon the first request. Needed for discovery
             updateAgentDetailsIfNeeded(pReq);
@@ -320,26 +337,21 @@ public class AgentServlet extends HttpServlet {
             // Nothing needs to be done
             return;
         } catch (Throwable exp) {
-            json = requestHandler.handleThrowable(
+            try {
+                json = requestHandler.handleThrowable(
                     exp instanceof RuntimeMBeanException ? ((RuntimeMBeanException) exp).getTargetException() : exp);
+            } catch (Throwable exp2) {
+                exp2.printStackTrace();
+            }
         } finally {
             releaseBackChannel();
             setCorsHeader(pReq, pResp);
+            if (json == null) {
+                json = requestHandler.handleThrowable(new Exception("Internal error while handling an exception"));
+            }
         }
-        sendAnswer(pReq, pResp, json);
-    }
 
-    private void sendAnswer(HttpServletRequest pReq, HttpServletResponse pResp, JSONAware json) throws IOException {
-        String callback = pReq.getParameter(ConfigKey.CALLBACK.getKeyValue());
-        String answer = json != null ?
-                json.toJSONString() :
-                requestHandler.handleThrowable(new Exception("Internal error while handling an exception")).toJSONString();
-        if (callback != null) {
-            // Send a JSONP response
-            sendResponse(pResp, "text/javascript", callback + "(" + answer + ");");
-        } else {
-            sendResponse(pResp, getMimeType(pReq), answer);
-        }
+        sendResponse(pResp, pReq, json);
     }
 
     private void releaseBackChannel() {
@@ -350,6 +362,7 @@ public class AgentServlet extends HttpServlet {
     private void prepareBackChannel(HttpServletRequest pReq) {
         BackChannelHolder.set(new ServletBackChannel(pReq));
     }
+
 
     private JSONAware handleSecurely(final ServletRequestHandler pReqHandler, final HttpServletRequest pReq, final HttpServletResponse pResp)
             throws IOException, PrivilegedActionException, EmptyResponseException {
@@ -464,13 +477,12 @@ public class AgentServlet extends HttpServlet {
         }
     }
 
-    // Extract mime type for response (if not JSONP)
-    private String getMimeType(HttpServletRequest pReq) {
-        String requestMimeType = pReq.getParameter(ConfigKey.MIME_TYPE.getKeyValue());
-        if (requestMimeType != null) {
-            return requestMimeType;
+    private boolean isStreamingEnabled(HttpServletRequest pReq) {
+        String streamingFromReq = pReq.getParameter(ConfigKey.STREAMING.getKeyValue());
+        if (streamingFromReq != null) {
+            return Boolean.parseBoolean(streamingFromReq);
         }
-        return jolokiaContext.getConfig(ConfigKey.MIME_TYPE);
+        return streamingEnabled;
     }
 
     private interface ServletRequestHandler {
@@ -497,7 +509,7 @@ public class AgentServlet extends HttpServlet {
              }
         };
     }
-    
+
     // factory method for GET request handler
     private ServletRequestHandler newGetHttpRequestHandler() {
         return new ServletRequestHandler() {
@@ -529,12 +541,55 @@ public class AgentServlet extends HttpServlet {
         }
     }
 
-    private void sendResponse(HttpServletResponse pResp, String pContentType, String pJsonTxt) throws IOException {
-        setContentType(pResp, pContentType);
-        pResp.setStatus(200);
+    private void sendResponse(HttpServletResponse pResp, HttpServletRequest pReq, JSONAware pJson) throws IOException {
+        String callback = pReq.getParameter(ConfigKey.CALLBACK.getKeyValue());
+
+        setContentType(pResp,
+                       MimeTypeUtil.getResponseMimeType(
+                           pReq.getParameter(ConfigKey.MIME_TYPE.getKeyValue()),
+                           configMimeType, callback));
+        pResp.setStatus(HttpServletResponse.SC_OK);
         setNoCacheHeaders(pResp);
-        PrintWriter writer = pResp.getWriter();
-        writer.write(pJsonTxt);
+        if (pJson == null) {
+            pResp.setContentLength(-1);
+        } else {
+            if (isStreamingEnabled(pReq)) {
+                sendStreamingResponse(pResp, callback, (JSONStreamAware) pJson);
+            } else {
+                // Fallback, send as one object
+                // TODO: Remove for 2.0 where should support only streaming
+                sendAllJSON(pResp, callback, pJson);
+            }
+        }
+    }
+
+    private void validateCallbackIfGiven(HttpServletRequest pReq) {
+        String callback = pReq.getParameter(ConfigKey.CALLBACK.getKeyValue());
+        if (callback != null && !MimeTypeUtil.isValidCallback(callback)) {
+            throw new IllegalArgumentException("Invalid callback name given, which must be a valid javascript function name");
+        }
+    }
+    private void sendStreamingResponse(HttpServletResponse pResp, String pCallback, JSONStreamAware pJson) throws IOException {
+        Writer writer = new OutputStreamWriter(pResp.getOutputStream(), "UTF-8");
+        IoUtil.streamResponseAndClose(writer, pJson, pCallback);
+    }
+
+    private void sendAllJSON(HttpServletResponse pResp, String callback, JSONAware pJson) throws IOException {
+        OutputStream out = null;
+        try {
+            String json = pJson.toJSONString();
+            String content = callback == null ? json : callback + "(" + json + ");";
+            byte[] response = content.getBytes("UTF8");
+            pResp.setContentLength(response.length);
+            out = pResp.getOutputStream();
+            out.write(response);
+        } finally {
+            if (out != null) {
+                // Always close in order to finish the request.
+                // Otherwise the thread blocks.
+                out.close();
+            }
+        }
     }
 
     private void setNoCacheHeaders(HttpServletResponse pResp) {

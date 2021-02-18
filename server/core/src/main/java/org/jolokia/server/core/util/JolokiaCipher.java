@@ -5,7 +5,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.security.*;
 import java.util.Random;
 
@@ -23,7 +23,7 @@ public class JolokiaCipher {
 
     private static final int SALT_SIZE = 8;
     private static final int CHUNK_SIZE = 16;
-    public static final String JOLOKIA_CYPHER_PASSWORD = "META-INF/jolokia-password";
+    static final String JOLOKIA_CYPHER_PASSWORD_FILE = "META-INF/jolokia-password";
 
     private MessageDigest digest;
     private Random random;
@@ -52,7 +52,7 @@ public class JolokiaCipher {
      * @return the encoded password
      */
     public String encrypt(final String pText) throws GeneralSecurityException {
-        byte[] clearBytes = pText.getBytes(StandardCharsets.UTF_8);
+        byte[] clearBytes = pText.getBytes(Charset.forName("UTF-8"));
         byte[] salt = getSalt(SALT_SIZE);
 
         Cipher cipher = createCipher(salt, Cipher.ENCRYPT_MODE);
@@ -91,7 +91,7 @@ public class JolokiaCipher {
         Cipher cipher = createCipher(salt, Cipher.DECRYPT_MODE);
         byte[] clearBytes = cipher.doFinal(encryptedBytes);
 
-        return new String(clearBytes, StandardCharsets.UTF_8);
+        return new String(clearBytes, Charset.forName("UTF-8"));
     }
 
     // =================================================================
@@ -149,18 +149,22 @@ public class JolokiaCipher {
     public interface KeyHolder { String getKey(); };
 
     private byte[] getKeyAsBytes() {
-        return keyHolder.getKey().getBytes(StandardCharsets.UTF_8);
+        return keyHolder.getKey().getBytes(Charset.forName("UTF-8"));
     }
 
     private static class KeyHolderImpl implements KeyHolder {
 
         public String getKey() {
-            InputStream in = ClassUtil.getResourceAsStream(JOLOKIA_CYPHER_PASSWORD);
+            InputStream in = ClassUtil.getResourceAsStream(JOLOKIA_CYPHER_PASSWORD_FILE);
             if (in != null) {
                 try {
                     return new BufferedReader(new InputStreamReader(in)).readLine();
                 } catch (IOException e) {
-                    throw new IllegalStateException("Can not read password from " + JOLOKIA_CYPHER_PASSWORD + ": " + e,e);
+                    throw new IllegalStateException("Can not read password from " + JOLOKIA_CYPHER_PASSWORD_FILE + ": " + e, e);
+                } finally {
+                    try {
+                        in.close();
+                    } catch (IOException e) { }
                 }
             } else {
                 return "`x%_rDL9T'&ENuyA{LPcc(UDv`NzzY6NZF\"F=rba-9Ftg,HJr.y@E;amfr>B4z<UqQg}2_4kq\\Y@6mNJEpwGx#CT;&?%%.$T_br`(&%3)2vC:5?3f9ptX?KR9kYQu2;#".substring(40, 72);

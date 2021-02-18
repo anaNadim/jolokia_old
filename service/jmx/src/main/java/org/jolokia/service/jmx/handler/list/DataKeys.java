@@ -25,6 +25,7 @@ package org.jolokia.service.jmx.handler.list;
 public enum DataKeys {
 
     DESCRIPTION("desc"),
+    CLASSNAME("class"),
     ERROR("error"),
     NAME("name"),
     TYPES("types"),
@@ -32,7 +33,7 @@ public enum DataKeys {
     RETURN_TYPE("ret"),
     OPERATIONS("op"),
     ATTRIBUTES("attr"),
-    NOTIFICATIONS("not"),
+    NOTIFICATIONS("notif"),
     TYPE("type"),
     READ_WRITE("rw");
 
@@ -52,5 +53,11 @@ public enum DataKeys {
      */
     public String getKey() {
         return key;
+    }
+
+
+    @Override
+    public String toString() {
+        return getKey();
     }
 }

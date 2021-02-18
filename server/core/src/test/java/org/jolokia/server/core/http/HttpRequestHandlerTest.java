@@ -27,6 +27,7 @@ import org.jolokia.server.core.request.*;
 import org.jolokia.server.core.restrictor.AllowAllRestrictor;
 import org.jolokia.server.core.service.api.Restrictor;
 import org.jolokia.server.core.service.api.LogHandler;
+import org.jolokia.server.core.service.impl.StdoutLogHandler;
 import org.jolokia.server.core.service.request.RequestHandler;
 import org.jolokia.server.core.service.serializer.Serializer;
 import org.jolokia.server.core.util.*;
@@ -51,6 +52,7 @@ public class HttpRequestHandlerTest {
     public void accessAllowed() throws Exception {
         Restrictor restrictor = createMock(Restrictor.class);
         expect(restrictor.isRemoteAccessAllowed("localhost","127.0.0.1")).andReturn(true);
+        expect(restrictor.isOriginAllowed((String) isNull(), eq(true))).andReturn(true);
         replay(restrictor);
         init(restrictor);
         handler.checkAccess("localhost", "127.0.0.1", null);
@@ -192,7 +194,7 @@ public class HttpRequestHandlerTest {
 
 
     private void init() throws Exception {
-        init(new AllowAllRestrictor(),new LogHandler.StdoutLogHandler(false));
+        init(new AllowAllRestrictor(),new StdoutLogHandler(false));
     }
 
     private void init(LogHandler pLogHandler) throws Exception {
@@ -200,7 +202,7 @@ public class HttpRequestHandlerTest {
     }
 
     private void init(Restrictor pRestrictor) throws Exception {
-        init(pRestrictor,new LogHandler.StdoutLogHandler(false));
+        init(pRestrictor,new StdoutLogHandler(false));
     }
 
     private void init(Restrictor pRestrictor, LogHandler pLogHandler) throws Exception {

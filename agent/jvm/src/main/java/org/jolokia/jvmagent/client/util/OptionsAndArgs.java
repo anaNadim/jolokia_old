@@ -40,7 +40,7 @@ public final class OptionsAndArgs {
     private static final Set<String> OPTIONS = new HashSet<String>(Arrays.asList(
             // JVM Agent options:
             "host", "port", "agentContext", "user", "password",
-            "quiet!", "verbose!", "version!", "executor", "threadNr",
+            "quiet!", "verbose!", "version!", "executor", "threadNamePrefix", "threadNr",
             "backlog", "hide!", "protocol","authMode","authClass",
             "authUrl", "authPrincipalSpec", "authIgnoreCerts!",
             //https options:
@@ -50,7 +50,7 @@ public final class OptionsAndArgs {
             "sslProtocol", "sslCipherSuite",
             // Jolokia options:
             "historyMaxEntries", "debug!", "debugMaxEntries",
-            "dispatcherClasses", "maxDepth", "maxCollectionSize",
+            "logHandlerClass", "dispatcherClasses", "maxDepth", "maxCollectionSize",
             "maxObjects", "restrictorClass", "policyLocation", "mbeanQualifier",
             "canonicalNaming", "includeStackTrace", "serializeException",
             "discoveryEnabled", "discoveryAgentUrl", "agentId", "agentDescription",
@@ -202,6 +202,14 @@ public final class OptionsAndArgs {
      */
     public boolean isQuiet() {
         return quiet;
+    }
+
+    /**
+     * Get the configured port
+     */
+    public String getPort() {
+        String port = options.get("port");
+        return port != null ? port : "8778";
     }
 
     /**

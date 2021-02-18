@@ -27,7 +27,7 @@
   <packaging>pom</packaging>
 
   <url>http://www.jolokia.org</url>
-  
+
   <modules>
     <module>server/core</module>
     <module>server/detector</module>
@@ -62,8 +62,8 @@
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <source>1.5</source>
-          <target>1.5</target>
+          <source>1.7</source>
+          <target>1.7</target>
         </configuration>
       </plugin>
 
@@ -95,6 +95,9 @@
               <goal>generate-html</goal>
               <goal>generate-pdf</goal>
             </goals>
+            <configuration>
+              <imgSrcPath>file:///${project.basedir}/src/docbkx/images/</imgSrcPath>
+            </configuration>
             <phase>pre-site</phase>
           </execution>
         </executions>
@@ -142,7 +145,7 @@
           </postProcess>
         </configuration>
       </plugin>
-      
+
       <plugin>
         <groupId>org.apache.rat</groupId>
         <artifactId>apache-rat-plugin</artifactId>
@@ -154,10 +157,10 @@
         </configuration>
       </plugin>
     </plugins>
-    
-    
+
+
     <!-- ===========================================================  -->
-    
+
     <!-- plugin versions -->
     <pluginManagement>
       <plugins>
@@ -189,7 +192,7 @@
 
         <plugin>
           <artifactId>maven-shade-plugin</artifactId>
-          <version>2.2</version>
+          <version>2.3</version>
         </plugin>
 
         <plugin>
@@ -209,7 +212,7 @@
           <artifactId>docbkx-maven-plugin</artifactId>
           <version>2.0.6</version>
         </plugin>
-        
+
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-gpg-plugin</artifactId>
@@ -231,7 +234,7 @@
             </archive>
           </configuration>
         </plugin>
-        
+
         <plugin>
           <artifactId>maven-war-plugin</artifactId>
           <version>2.5</version>
@@ -241,7 +244,7 @@
           <artifactId>maven-deploy-plugin</artifactId>
           <version>2.8.2</version>
         </plugin>
-        
+
         <plugin>
           <artifactId>maven-surefire-plugin</artifactId>
           <version>2.18.1</version>
@@ -251,12 +254,12 @@
           <artifactId>maven-resources-plugin</artifactId>
           <version>2.7</version>
         </plugin>
-        
+
         <plugin>
           <artifactId>maven-install-plugin</artifactId>
           <version>2.5.2</version>
         </plugin>
-        
+
         <plugin>
           <artifactId>maven-antrun-plugin</artifactId>
           <version>1.7</version>
@@ -332,7 +335,7 @@
           </reportSet>
         </reportSets>
       </plugin>
-      
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-changes-plugin</artifactId>
@@ -361,12 +364,12 @@
     <tag>HEAD</tag>
     <url>git://github.com/rhuss/jolokia.git</url>
   </scm>
-  
+
   <ciManagement>
     <system>jenkins</system>
-    <url>http://labs.consol.de/jenkins/job/jolokia</url>
+    <url>https://travis-ci.org/rhuss/jolokia</url>
   </ciManagement>
-    
+
   <licenses>
     <license>
       <name>Apache 2</name>
@@ -381,6 +384,7 @@
       <name>Roland Huss</name>
       <id>roland</id>
       <email>roland@jolokia.org</email>
+      <url>https://github.com/rhuss</url>
       <roles>
         <role>Developer, Architect</role>
       </roles>
@@ -388,10 +392,160 @@
   </developers>
 
   <contributors>
-      <contributor>
-          <name>Georgy Bolyuba</name>
-          <email>georgy@bolyuba.com</email>
-      </contributor>
+    <contributor>
+      <name>Greg Bowyer</name>
+      <email>gbowyer@fastmail.co.uk</email>
+      <url>https://github.com/GregBowyer</url>
+    </contributor>
+    <contributor>
+      <name>Arnab Biswas</name>
+      <email>arnabbiswas1@outlook.com</email>
+      <url>https://github.com/arnabbiswas1</url>
+    </contributor>
+    <contributor>
+      <name>Benson Margulies</name>
+      <email>benson@basistech.com</email>
+      <url>https://github.com/benson-basis</url>
+    </contributor>
+    <contributor>
+      <name>Hiram Chirino</name>
+      <email>hiram@hiramchirino.com</email>
+      <url>https://github.com/chirino</url>
+    </contributor>
+    <contributor>
+      <name>Tom McMillen</name>
+      <email>tgmcmillen@yahoo.co.uk</email>
+      <url>https://github.com/cymantic</url>
+    </contributor>
+    <contributor>
+      <name>Dejan Bosanac</name>
+      <url>https://github.com/dejanb</url>
+    </contributor>
+    <contributor>
+      <name>Alex Coomans</name>
+      <email>alex@alexcoomans.com</email>
+      <url>https://github.com/drcapulet</url>
+    </contributor>
+    <contributor>
+      <name>elnkwelch</name>
+      <url>https://github.com/elnkwelch</url>
+    </contributor>
+    <contributor>
+      <name>Georgy Bolyuba</name>
+      <email>georgy@bolyuba.com</email>
+      <url>https://github.com/georgy</url>
+    </contributor>
+    <contributor>
+      <name>Hemant Kumar</name>
+      <email>hemant@codemancers.com</email>
+      <url>https://github.com/gnufied</url>
+    </contributor>
+    <contributor>
+      <name>Gerald Quintana</name>
+      <email>gerald.quintana@gmail.com</email>
+      <url>https://github.com/gquintana</url>
+    </contributor>
+    <contributor>
+      <name>Jochen Cordes</name>
+      <url>https://github.com/jcordes73</url>
+    </contributor>
+    <contributor>
+      <name>Jürgen Hermann</name>
+      <url>https://github.com/jhermann</url>
+    </contributor>
+    <contributor>
+      <name>jpamador</name>
+      <url>https://github.com/jpamador</url>
+    </contributor>
+    <contributor>
+      <name>James Strachan</name>
+      <email>james.strachan@gmail.com</email>
+      <url>https://github.com/jstrachan</url>
+    </contributor>
+    <contributor>
+      <name>Khai Nguyen</name>
+      <url>https://github.com/khaing211</url>
+    </contributor>
+    <contributor>
+      <name>Maros Marsalek</name>
+      <email>maros.mars@gmail.com</email>
+      <url>https://github.com/marosmars</url>
+    </contributor>
+    <contributor>
+      <name>Martin Vitez</name>
+      <url>https://github.com/matejj</url>
+    </contributor>
+    <contributor>
+      <name>mikael</name>
+      <url>https://github.com/Mikael</url>
+    </contributor>
+    <contributor>
+      <name>Michael Richards</name>
+      <url>https://github.com/mjr5749</url>
+    </contributor>
+    <contributor>
+      <name>Neven Radovanoviƒá</name>
+      <url>https://github.com/nevenr</url>
+    </contributor>
+    <contributor>
+      <name>ogis-nakagawa</name>
+      <email>Nakagawa_Michio@ogis-ri.co.jp</email>
+      <url>https://github.com/ogis-nakagawa</url>
+    </contributor>
+    <contributor>
+      <name>Robert Gründler</name>
+      <email>robert@dubture.com</email>
+      <url>https://github.com/pulse00</url>
+    </contributor>
+    <contributor>
+      <name>Roland Mai</name>
+      <email>roland.mai@gmail.com</email>
+      <url>https://github.com/roland</url>
+    </contributor>
+    <contributor>
+      <name>Ryan Goulding</name>
+      <email>ryandgoulding@gmail.com</email>
+      <url>https://github.com/ryandgoulding</url>
+    </contributor>
+    <contributor>
+      <name>Senthil Supramaniam</name>
+      <url>https://github.com/senthilnest</url>
+    </contributor>
+    <contributor>
+      <name>Stephan Beal</name>
+      <email>sgbeal@googlemail.com</email>
+      <url>https://github.com/sgbeal</url>
+    </contributor>
+    <contributor>
+      <name>Jean-Philippe Melanson</name>
+      <url>https://github.com/srirachapills</url>
+    </contributor>
+    <contributor>
+      <name>Tadayoshi Sato</name>
+      <url>https://github.com/tadayosi</url>
+    </contributor>
+    <contributor>
+      <name>Gareth Davis</name>
+      <email>gareth.davis@mac.com</email>
+      <url>https://github.com/tempredirect</url>
+    </contributor>
+    <contributor>
+      <name>Tokuhiro Matsuno</name>
+      <url>https://github.com/tokuhirom</url>
+    </contributor>
+    <contributor>
+      <name>twhite</name>
+      <url>https://github.com/twhite</url>
+    </contributor>
+    <contributor>
+      <name>Maciek Sakrejda</name>
+      <email>m.sakrejda@gmail.com</email>
+      <url>https://github.com/uhoh-itsmaciek</url>
+    </contributor>
+    <contributor>
+      <name>Zisis Lianas</name>
+      <url>https://github.com/zisisli</url>
+    </contributor>
   </contributors>
 
   <!-- Test dependencies for all modules-->
@@ -420,14 +574,14 @@
   <!-- Overall version management -->
   <dependencyManagement>
     <dependencies>
-    
+
       <dependency>
         <groupId>org.apache.geronimo.specs</groupId>
         <artifactId>geronimo-servlet_3.0_spec</artifactId>
         <version>1.0</version>
         <scope>provided</scope>
       </dependency>
-      
+
       <dependency>
         <groupId>com.googlecode.json-simple</groupId>
         <artifactId>json-simple</artifactId>
@@ -447,14 +601,14 @@
         <version>4.2.0</version>
         <scope>provided</scope>
       </dependency>
-      
+
       <dependency>
         <groupId>org.osgi</groupId>
         <artifactId>org.osgi.compendium</artifactId>
         <version>4.2.0</version>
         <scope>provided</scope>
       </dependency>
-      
+
       <dependency>
         <groupId>org.testng</groupId>
         <artifactId>testng</artifactId>
@@ -465,7 +619,7 @@
       <dependency>
         <groupId>org.easymock</groupId>
         <artifactId>easymock</artifactId>
-        <version>3.0</version>
+        <version>4.2</version>
         <scope>test</scope>
       </dependency>
 
@@ -498,9 +652,7 @@
     <additionalparam>-Xdoclint:none</additionalparam>
     <currentStableVersion>2.0.0-M3</currentStableVersion>
     <currentSnapshotVersion>2.0.0-SNAPSHOT</currentSnapshotVersion>
-    <sonar.host.url>https://nemo.sonarqube.org</sonar.host.url>
     <sonar.projectKey>org.jolokia:jolokia-2.0</sonar.projectKey>
-    <sonar.core.codeCoveragePlugin>jacoco</sonar.core.codeCoveragePlugin>
     <github.global.server>github</github.global.server>
   </properties>
 
@@ -534,7 +686,7 @@
       </url>
     </repository>
   </distributionManagement>
-  
+
   <profiles>
     <profile>
       <!-- Distribution to maven central. This is default deployment target -->
@@ -553,7 +705,7 @@
               </execution>
             </executions>
           </plugin>
-          
+
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
@@ -566,7 +718,7 @@
               </execution>
             </executions>
           </plugin>
-          
+
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
@@ -638,19 +790,20 @@
         </plugins>
       </build>
     </profile>
-    <!-- Profile for running only Java 5 compliant tests-->
     <profile>
-      <id>java5</id>
+      <id>disable-javadoc-lint</id>
       <activation>
-        <jdk>1.5</jdk>
+        <jdk>[1.8,2.0)</jdk>
       </activation>
       <build>
         <pluginManagement>
           <plugins>
             <plugin>
-              <artifactId>maven-surefire-plugin</artifactId>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-javadoc-plugin</artifactId>
+              <version>2.10.1</version>
               <configuration>
-                <excludedGroups>java6</excludedGroups>
+                <additionalparam>-Xdoclint:none</additionalparam>
               </configuration>
             </plugin>
           </plugins>
@@ -664,7 +817,6 @@
       <modules>
         <module>tools/roo</module>
       </modules>
-  </profile>
-
+    </profile>
   </profiles>
 </project>

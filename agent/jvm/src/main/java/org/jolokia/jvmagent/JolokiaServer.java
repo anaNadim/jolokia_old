@@ -35,6 +35,7 @@ import org.jolokia.server.core.restrictor.RestrictorFactory;
 import org.jolokia.server.core.service.JolokiaServiceManagerFactory;
 import org.jolokia.server.core.service.api.*;
 import org.jolokia.server.core.service.impl.ClasspathServiceCreator;
+import org.jolokia.server.core.service.impl.StdoutLogHandler;
 import org.jolokia.server.core.util.*;
 
 /**
@@ -62,9 +63,6 @@ public class JolokiaServer {
 
     // Agent URL
     private String url;
-
-    // Thread factory which creates only daemon threads
-    private ThreadFactory daemonThreadFactory = new DaemonThreadFactory();
 
     // Service Manager in use
     private JolokiaServiceManager serviceManager;
@@ -196,7 +194,7 @@ public class JolokiaServer {
      */
     protected final void init(JolokiaServerConfig pConfig,LogHandler pLogHandler) throws IOException {
         // We manage it on our own
-        init(createHttpServer(pConfig),pConfig,pLogHandler);
+        init(createHttpServer(pConfig), pConfig, pLogHandler);
         useOwnServer = true;
     }
 
@@ -239,7 +237,7 @@ public class JolokiaServer {
         // Get own URL for later reference
         serverAddress = pServer.getAddress();
         url = detectAgentUrl(pServer, pConfig, pConfig.getContextPath());
-    }
+       }
 
     // Create the JolokiaHttpHandler either directly or lazily
     private HttpHandler createJolokiaHttpHandler(boolean pLazy) {
@@ -256,7 +254,7 @@ public class JolokiaServer {
         JolokiaHttpHandler jolokiaHttpHandler = new JolokiaHttpHandler(jolokiaContext);
         updateAgentUrl(jolokiaContext);
         return jolokiaHttpHandler;
-    }
+}
 
     // Update the Agent URL from the configuration or own URL
     private void updateAgentUrl(JolokiaContext pJolokiaContext) {
@@ -301,7 +299,7 @@ public class JolokiaServer {
         if (pLogHandlerClass != null) {
             return ClassUtil.newInstance(pLogHandlerClass);
         } else {
-            return new LogHandler.StdoutLogHandler(pIsDebug);
+            return new StdoutLogHandler(pIsDebug);
         }
     }
 
@@ -348,6 +346,8 @@ public class JolokiaServer {
                         createHttpsServer(socketAddress, pConfig) :
                         HttpServer.create(socketAddress, pConfig.getBacklog());
 
+        // Thread factory which creates only daemon threads
+        ThreadFactory daemonThreadFactory = new DaemonThreadFactory(pConfig.getThreadNamePrefix());
         // Prepare executor pool
         Executor executor;
         String mode = pConfig.getExecutor();
@@ -428,7 +428,7 @@ public class JolokiaServer {
         String keystoreFile = pConfig.getKeystore();
         KeyStore keystore = KeyStore.getInstance(pConfig.getKeyStoreType());
         if (keystoreFile != null) {
-            // Load everything from a keystore which must include CA (if useClientSslAuthenticatin is used) and
+            // Load everything from a keystore which must include CA (if useClientSslAuthentication is used) and
             // server cert/key
             loadKeyStoreFromFile(keystore, keystoreFile, password);
         } else {

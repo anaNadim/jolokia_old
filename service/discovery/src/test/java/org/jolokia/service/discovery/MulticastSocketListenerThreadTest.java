@@ -2,12 +2,13 @@ package org.jolokia.service.discovery;
 
 import java.io.IOException;
 import java.net.SocketException;
-import java.net.URL;
 import java.util.List;
 import java.util.UUID;
 
 import org.jolokia.server.core.Version;
+import org.jolokia.server.core.config.ConfigKey;
 import org.jolokia.server.core.service.api.*;
+import org.jolokia.server.core.service.impl.StdoutLogHandler;
 import org.jolokia.server.core.util.NetworkUtil;
 import org.jolokia.server.core.util.TestJolokiaContext;
 import org.json.simple.JSONObject;
@@ -33,7 +34,7 @@ public class MulticastSocketListenerThreadTest {
         //details.setServerInfo("jolokia", "jolokia-test", "1.0");
 
         JolokiaContext context = new TestJolokiaContext.Builder().agentDetails(details).build();
-        MulticastSocketListenerThread listenerThread = new MulticastSocketListenerThread(null,context);
+        MulticastSocketListenerThread listenerThread = new MulticastSocketListenerThread("ListenerThread", null,context);
         listenerThread.start();
         Thread.sleep(500);
         return listenerThread;
@@ -51,7 +52,11 @@ public class MulticastSocketListenerThreadTest {
                     new DiscoveryOutgoingMessage.Builder(QUERY)
                             .agentId(id)
                             .build();
-            List<DiscoveryIncomingMessage> discovered = sendQueryAndCollectAnswers(out, 500, new LogHandler.StdoutLogHandler(true));
+            List<DiscoveryIncomingMessage> discovered =
+                sendQueryAndCollectAnswers(out, 500,
+                                           ConfigKey.MULTICAST_GROUP.getDefaultValue(),
+                                           Integer.parseInt(ConfigKey.MULTICAST_PORT.getDefaultValue()),
+                                           new StdoutLogHandler(true));
             int idCount = 0;
             int urlCount = 0;
             for (DiscoveryIncomingMessage in : discovered) {

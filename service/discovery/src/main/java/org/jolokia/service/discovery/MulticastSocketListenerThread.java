@@ -7,6 +7,7 @@ package org.jolokia.service.discovery;
 import java.io.IOException;
 import java.net.*;
 
+import org.jolokia.server.core.config.ConfigKey;
 import org.jolokia.server.core.service.api.JolokiaContext;
 import org.jolokia.server.core.util.NetworkUtil;
 
@@ -35,16 +36,18 @@ class MulticastSocketListenerThread extends Thread {
     /**
      * Constructor, used internally.
      *
+     * @param pName name to use for the thread
      * @param pHostAddress host address for creating a socket to listen to
      * @param pContext context for accessing Jolokia Services
      */
-    MulticastSocketListenerThread(InetAddress pHostAddress, JolokiaContext pContext) throws IOException {
+    MulticastSocketListenerThread(String pName, InetAddress pHostAddress, JolokiaContext pContext) throws IOException {
+        super(pName);
         address = pHostAddress != null ? pHostAddress : NetworkUtil.getLocalAddressWithMulticast();
         context = pContext;
         // For debugging, uncomment:
         //logHandler = new LogHandler.StdoutLogHandler(true);
 
-        socket = MulticastUtil.newMulticastSocket(address,pContext);
+        socket = MulticastUtil.newMulticastSocket(address, pContext);
         pContext.debug(address + "<-- Listening for queries");
         setDaemon(true);
     }
