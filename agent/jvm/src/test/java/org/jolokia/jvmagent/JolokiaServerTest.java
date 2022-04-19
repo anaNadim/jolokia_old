@@ -349,7 +349,7 @@ public class JolokiaServerTest {
     @Test
     public void customHttpServer() throws IOException, NoSuchFieldException, IllegalAccessException {
         HttpServer httpServer = HttpServer.create();
-        JvmAgentConfig cfg = new JvmAgentConfig("port=" + EnvTestUtil.getFreePort());
+        JvmAgentConfig cfg = new JvmAgentConfig("");
         JolokiaServer server = new JolokiaServer(httpServer,cfg,null);
         Field field = JolokiaServer.class.getDeclaredField("useOwnServer");
         field.setAccessible(true);
@@ -487,12 +487,12 @@ public class JolokiaServerTest {
                              HostnameVerifier pVerifier,
                              boolean pValidateCa,
                              String pClientCert, String pUserPassword) throws Exception {
-        JolokiaServer server = null;
+        JolokiaServer server = new JolokiaServer(pConfig);
+        server.start();
+        //Thread.sleep(2000);
         HostnameVerifier oldVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
         SSLSocketFactory oldSslSocketFactory = HttpsURLConnection.getDefaultSSLSocketFactory();
         try {
-            server =  new JolokiaServer(pConfig);
-            server.start();
             if (pDoRequest) {
                 if (pVerifier != null) {
                     HttpsURLConnection.setDefaultHostnameVerifier(pVerifier);
@@ -526,9 +526,7 @@ public class JolokiaServerTest {
             String resp = EnvTestUtil.readToString(uc.getInputStream());
             assertTrue(resp.matches(".*type.*version.*" + Version.getAgentVersion() + ".*"));
         } finally {
-            if (server != null) {
-                server.stop();
-            }
+            server.stop();
             try {
                 Thread.sleep(10);
             } catch (InterruptedException e) {
