@@ -19,7 +19,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>jolokia-agent-osgi</artifactId>
-  <version>2.0.0-ullink2</version>
+  <version>2.0.0-ullink3-SNAPSHOT</version>
   <packaging>bundle</packaging>
 
   <description>Jolokia :: Agent :: OSGi Bundle</description>
@@ -27,7 +27,7 @@
   <parent>
     <groupId>org.jolokia</groupId>
     <artifactId>jolokia-parent</artifactId>
-    <version>2.0.0-ullink2</version>
+    <version>2.0.0-ullink3-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -138,7 +138,8 @@
               jolokia-service-serializer;inline=true,
               jolokia-service-discovery;inline=true,
               jolokia-service-history;inline=true,
-              jolokia-service-pullnotif;inline=true,
+              jolokia-service-notif-pull;inline=true,
+              jolokia-service-notif-sse;inline=true,
               json-simple;inline=true
             </Embed-Dependency>
             <Export-Package>
@@ -153,6 +154,8 @@
               org.jolokia.server.core.service,
               org.jolokia.server.core.util.*,
               org.jolokia.server.core,
+              org.jolokia.service.notif.pull.osgi,
+              org.jolokia.service.notif.sse.osgi,
               org.jolokia.service.jmx.api
             </Export-Package>
           </instructions>

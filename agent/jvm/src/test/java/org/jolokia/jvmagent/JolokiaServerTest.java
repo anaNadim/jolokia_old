@@ -349,7 +349,7 @@ public class JolokiaServerTest {
     @Test
     public void customHttpServer() throws IOException, NoSuchFieldException, IllegalAccessException {
         HttpServer httpServer = HttpServer.create();
-        JvmAgentConfig cfg = new JvmAgentConfig("port=" + EnvTestUtil.getFreePort());
+        JvmAgentConfig cfg = new JvmAgentConfig("");
         JolokiaServer server = new JolokiaServer(httpServer,cfg,null);
         Field field = JolokiaServer.class.getDeclaredField("useOwnServer");
         field.setAccessible(true);
